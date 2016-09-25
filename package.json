@@ -1,0 +1,27 @@
+{
+  "name": "xy-maze",
+  "version": "1.0.0",
+  "description": "drawing mazes with the makeblock XY plotter v2",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arnaudjuracek/xy-maze.git"
+  },
+  "keywords": [
+    "maze",
+    "plotter"
+  ],
+  "author": "Arnaud Juracek <arnaud.juracek@gmail.com> (http://arnaudjuracek.fr)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/arnaudjuracek/xy-maze/issues"
+  },
+  "homepage": "https://github.com/arnaudjuracek/xy-maze#readme",
+  "dependencies": {
+    "maze-generator": "github:arnaudjuracek/maze-generator",
+    "xy-plotter": "github:arnaudjuracek/xy"
+  }
+}
