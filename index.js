@@ -7,7 +7,7 @@ const
   rows = Math.floor(plotter.height / 4),
   margin = 10,
   scale = (plotter.width - margin * 2) / cols,
-  maze = new mg.Maze(cols, rows, 0, 0).generate(),
+  maze = new mg.Maze(cols, rows, Math.floor(Math.random() * cols), 0).generate(),
   solver = new mg.Solver(maze).solve(),
   job = plotter.Job('maze');
 
@@ -62,8 +62,14 @@ for (let row = 0; row < rows; row++) {
   }
 }
 
-job.circle(margin + 0 * scale + scale / 2, margin + 0 * scale + scale / 2, scale * 0.25, 5);
-job.circle(margin + maze.end.x * scale + scale / 2, margin + maze.end.y * scale + scale / 2, scale * 0.25, 5);
+// open start and end
+walls.horizontal[maze.start.y][maze.start.x] = false;
+walls.horizontal[maze.end.y + 1][maze.end.x] = false;
+
+// mark start and end
+job.circle(margin + maze.start.x * scale + scale / 2, margin + maze.start.y * scale, scale * 0.25, 7);
+job.circle(margin + maze.end.x * scale + scale / 2, margin + maze.end.y * scale + scale, scale * 0.25, 7);
+
 
 job.setSpeed(0.8);
 for (let col = 0; col < walls.vertical.length; col++) {
