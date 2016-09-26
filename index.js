@@ -3,8 +3,8 @@ const mg      = require('maze-generator');
 
 
 const
-  cols = 100,
-  rows = 100,
+  cols = Math.floor(plotter.width / 4),
+  rows = Math.floor(plotter.height / 4),
   margin = 10,
   scale = (plotter.width - margin * 2) / cols,
   maze = new mg.Maze(cols, rows, 0, 0).generate(),
@@ -19,7 +19,7 @@ let walls = {
 for (let col = 0; col < cols; col++) {
   let verticalWalls = (col === cols - 1) ? [[], []] : [];
   for (let row = 0; row < rows; row++) {
-    let index = col + row * rows;
+    let index = col + row * cols;
     let cell = maze.cells[index];
     for (let j = 0; j < cell.walls.length; j++) {
       let wall = cell.walls[j];
@@ -42,7 +42,7 @@ for (let col = 0; col < cols; col++) {
 for (let row = 0; row < rows; row++) {
   let horizontalWalls = (row === rows - 1) ? [[], []] : [];
   for (let col = 0; col < cols; col++) {
-    let index = col + row * rows;
+    let index = col + row * cols;
     let cell = maze.cells[index];
     for (let j = 0; j < cell.walls.length; j++) {
       let wall = cell.walls[j];
