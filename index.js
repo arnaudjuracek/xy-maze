@@ -1,103 +1,80 @@
 const plotter = require('xy-plotter');
 const mg      = require('maze-generator');
 
-
 const
   cols = Math.floor(plotter.width / 4),
   rows = Math.floor(plotter.height / 4),
-  margin = 10,
+  margin = 20,
   scale = (plotter.width - margin * 2) / cols,
   maze = new mg.Maze(cols, rows, Math.floor(Math.random() * cols), 0).generate(),
   solver = new mg.Solver(maze).solve(),
   job = plotter.Job('maze');
 
-let walls = {
-  vertical: [],
-  horizontal: [],
-};
+let x = 0, y = 0, visitedCells = 0;
 
-for (let col = 0; col < cols; col++) {
-  let verticalWalls = (col === cols - 1) ? [[], []] : [];
-  for (let row = 0; row < rows; row++) {
-    let index = col + row * cols;
-    let cell = maze.cells[index];
-    for (let j = 0; j < cell.walls.length; j++) {
-      let wall = cell.walls[j];
-      if (col === cols - 1) {
-        if (j === 3) verticalWalls[0].push(wall);
-        if (j === 1) verticalWalls[1].push(wall);
-      } else {
-        if (j === 3) verticalWalls.push(wall);
+job.move(margin, margin).pen(20);
+// job.setSpeed(.8);
+
+maze.start.walls[0] = false;
+maze.end.walls[2] = false;
+
+while (visitedCells < maze.cells.length) {
+  let index = x + y * maze.cols;
+  let cell = maze.cells[index];
+
+  if (cell) {
+    if (cell.walls[3]) {
+      cell.walls[3] = false;
+      if(y < maze.rows) y++;
+      job.move(margin + x * scale, margin + y * scale);
+
+    } else if (cell.walls[0]) {
+      cell.walls[0] = false;
+      if(x < maze.cols) x++;
+      job.move(margin + x * scale, margin + y * scale);
+
+    } else {
+      maze.cells[index] = null;
+      visitedCells++;
+    }
+  } else {
+    let result = null;;
+    for (let i = 0; i < maze.cells.length; i++) {
+      let next = maze.cells[i];
+      if (next) {
+        if (next.walls[0] || next.walls[3]) {
+          result = next;
+          x = next.x;
+          y = next.y;
+          job.pen(0);
+          job.move(margin + x * scale, margin + y * scale);
+          job.pen(20);
+          break;
+        }
       }
     }
-  }
-  if (col === cols - 1) {
-    walls.vertical.push(verticalWalls[0]);
-    walls.vertical.push(verticalWalls[1]);
-  } else {
-    walls.vertical.push(verticalWalls);
+    if (result === null) break;
   }
 }
 
-for (let row = 0; row < rows; row++) {
-  let horizontalWalls = (row === rows - 1) ? [[], []] : [];
-  for (let col = 0; col < cols; col++) {
-    let index = col + row * cols;
-    let cell = maze.cells[index];
-    for (let j = 0; j < cell.walls.length; j++) {
-      let wall = cell.walls[j];
-      if (row === rows - 1) {
-        if (j === 0) horizontalWalls[0].push(wall);
-        if (j === 2) horizontalWalls[1].push(wall);
-      } else {
-        if (j === 0) horizontalWalls.push(wall);
-      }
-    }
-  }
-  if (row === rows - 1) {
-    walls.horizontal.push(horizontalWalls[0]);
-    walls.horizontal.push(horizontalWalls[1]);
-  } else {
-    walls.horizontal.push(horizontalWalls);
-  }
-}
+job
+  .pen(0)
+  .move(margin + 0, margin + maze.rows * scale)
+  .pen(20)
+  .move(margin + maze.end.x * scale, margin + maze.rows * scale)
+  .pen(0)
+  .move(margin + (maze.end.x + 1) * scale, margin + maze.rows * scale)
+  .pen(20)
+  .move(margin + maze.cols * scale, margin + maze.rows * scale)
+  .move(margin + maze.cols * scale, margin + 0);
 
-// open start and end
-walls.horizontal[maze.start.y][maze.start.x] = false;
-walls.horizontal[maze.end.y + 1][maze.end.x] = false;
+job.pen(0).home();
 
-// mark start and end
-job.circle(margin + maze.start.x * scale + scale / 2, margin + maze.start.y * scale, scale * 0.25, 7);
-job.circle(margin + maze.end.x * scale + scale / 2, margin + maze.end.y * scale + scale, scale * 0.25, 7);
-
-
-job.setSpeed(0.8);
-for (let col = 0; col < walls.vertical.length; col++) {
-  let segments = walls.vertical[col];
-  job.pen_up();
-  for (let i = 0; i < segments.length; i++) {
-    let segment = segments[i];
-    job.move(margin + col * scale, margin + i * scale);
-    if (segment) job.pen_down();
-    else job.pen_up();
-  }
-  job.move(margin + col * scale, margin + segments.length * scale);
-}
-
-for (let row = 0; row < walls.horizontal.length; row++) {
-  let segments = walls.horizontal[row];
-  job.pen_up();
-  for (let i = 0; i < segments.length; i++) {
-    let segment = segments[i];
-    job.move(margin + i * scale, margin + row * scale);
-    if (segment) job.pen_down();
-    else job.pen_up();
-  }
-  job.move(margin + segments.length * scale, margin + row * scale);
-}
-
-const path = require('path');
+path = require('path');
 const file = plotter.File();
-file.write(job, path.join(__dirname, 'maze.png'));
+file.export(job, path.join(__dirname, 'maze.png'));
 
-// plotter.Serial('/dev/tty.wchusbserial1410').send(job);
+const stat = plotter.Stats(job);
+console.log(`ETA between ${stat.getDuration().min.formatted} and ${stat.getDuration().max.formatted}`);
+
+plotter.Serial('/dev/tty.wchusbserial1410').send(job);
