@@ -6,4 +6,4 @@
 - [arnaudjuracek/xy](https://github.com/arnaudjuracek/xy)
 
 ### License
-MIT.
+[MIT](https://tldrlegal.com/license/mit-license).
